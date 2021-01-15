@@ -1,6 +1,6 @@
 <template>
   <div id="app-container">
-    <el-form :inline="true" :model="formInline" class="demo-form-inline">
+    <el-form :inline="true" class="demo-form-inline">
       <el-form-item label="书名">
         <el-input v-model="bookQuery.bookName" placeholder="书名"></el-input>
       </el-form-item>

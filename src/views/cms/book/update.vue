@@ -53,7 +53,18 @@
       <el-form-item label="简介">
         <el-input v-model="book.introduction" :row="5" type="textarea"/>
       </el-form-item>
-      <!--            书封-->
+      <!--书封-->
+      <el-form-item label="书封">
+        <el-upload
+          class="avatar-uploder"
+          :action="BASE_API + '/oss/uploadFile'"
+          :show-file-list="false"
+          :on-success="handleAvatarSuccess"
+          :before-upload="beforeAvatarUpload">
+          <img v-if="book.bookCover" :src="book.bookCover" class="avatar">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+      </el-form-item>
       <el-form-item>
         <el-button :disabled="saveBtnDisabled" type="primary" @click="updateBook()">保存</el-button>
       </el-form-item>
@@ -66,7 +77,18 @@ import book from '@/api/cms/book'
 export default {
   data(){
     return {
-      book:{},
+      book:{
+        bookName: '',
+        author: '',
+        grantStartTime: '',
+        grantEndTime: '',
+        isSerialize: '',
+        isCharge: '',
+        isOriginal: '',
+        introduction: '',
+        bookCover: '',
+
+      },
       saveBtnDisabeled: false,// ## 不禁用保存按钮
       BASE_API: process.env.VUE_APP_BASE_API
 
@@ -80,7 +102,6 @@ export default {
       if(this.$route.params && this.$route.params.id){
         const bookId=this.$route.params.id
         this.view(bookId)
-        console.log(bookId)
       }
     },
     view(bookId){ // ## 根据ID收集数据
@@ -89,6 +110,21 @@ export default {
         // ## 赋值
         this.book =response.data.book
       })
+    },
+    handleAvatarSuccess(res,file){
+      this.book.bookCover = res.data.uploadUrl
+    },
+    beforeAvatarUpload(file){
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size /1024/1024<2;
+
+      if(!isJPG){
+        this.$message.error('上传图片只能是JPG格式文件')
+      }
+      if(!isLt2M){
+        this.$message.error('上传图片大小不能超过2M')
+      }
+      return isJPG && isLt2M
     },
     updateBook() { // ## 修改书籍
       this.saveBtnDisabled = true // ##禁用保存按钮
@@ -106,3 +142,29 @@ export default {
   }
 }
 </script>
+<style>
+.avatar-uploader .el-upload{
+border: 1px dashed #d9d9d9;
+border-radius: 6px;
+cursor: pointer;
+position: relative;
+overflow: hidden;
+}
+.avatar-uploader .el-upload{
+border-color: #409EFF;
+}
+.avatar-uploader-icon{
+font-size: 28px;
+color: #8c939d;
+width: 178px;
+height: 178px;
+line-height: 178px;
+text-align: center;
+}
+.avatar{
+width: 178px;
+height: 178px;
+display: block;
+}
+</style>
+
