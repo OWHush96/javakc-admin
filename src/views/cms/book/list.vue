@@ -40,8 +40,8 @@
       <el-table-column prop="id" label="书籍Id"/>
       <el-table-column prop ="bookName" label="书名"/>
       <el-table-column prop ="author" label="作者"/>
-      <el-table-column prop ="level2Id" label="一级分类"/>
-      <el-table-column prop ="level2Id" label="二级分类"/>
+      <el-table-column prop ="level1Id" label="一级分类" :formatter="formatFirst"/>
+      <el-table-column prop ="level2Id" label="二级分类" :formatter="formatSecond"/>
       <el-table-column prop ="isSerialize" label="连载">
         <template slot-scope="scope">
           {{scope.row.isSerialize === 1?'连载中' : '完结'}}
@@ -97,6 +97,7 @@
 
 <script>
 import book from '@/api/cms/book'
+import category from "@/api/cms/category";
 export default {
  // ##data用来定义变量，并为其初始化内容
   data() {
@@ -106,11 +107,14 @@ export default {
       total: 0, // ## 总计路数
       pageNo: 1, // ##页码
       pageSize: 5,// ## 每页显示记录数
-      currentTime: '' // ##当前时间
+      currentTime: '' ,// ##当前时间
+      firstCategoryList: [],
+      secondCategoryList: []
     }
   },
   created(){ // ##页面尚未渲染之前执行的方法，data与methods已经被加载
     this.pageBook()
+    this.getFirstCategoryList()
     },
   methods:{
     // ## 查询数据列表
@@ -198,6 +202,34 @@ export default {
           message: '状态改变失败'
         })
       })
+    },
+    getFirstCategoryList(){// ## 获取一级分类
+      category.getCategoryList()
+        .then(response =>{
+          this.firstCategoryList=response.data.items
+        })
+    },
+    formatFirst(row){// ## 一级分类显示
+      for (let i = 0; i < this.firstCategoryList.length; i++) {
+        if(row.level1Id === this.firstCategoryList[i].id){
+          return this.firstCategoryList[i].name
+        }
+      }
+      return this.firstCategoryList
+    },
+    formatSecond(row){// ## 二级分类显示
+      // ## row 表示当前这一行的数据
+      for (let i = 0; i < this.firstCategoryList.length; i++) {
+        if(row.level1Id===this.firstCategoryList[i].id){
+          for (let j = 0; j < this.firstCategoryList[i].secondCategoryList.length; j++) {
+            if(row.level2Id===this.firstCategoryList[i].secondCategoryList[j].id){
+              return  this.firstCategoryList[i].secondCategoryList[j].name
+            }
+          }
+        }
+
+      }
+
     }
   }
 }

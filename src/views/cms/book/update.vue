@@ -13,6 +13,26 @@
         </el-col>
       </el-form-item>
       <!--      分类-->
+      <el-form-item label="一级分类">
+        <el-select @change="getSecondCategoryList" v-model="book.level1Id" placeholder="请选择">
+          <el-option
+            v-for="item in firstCategoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="二级分类">
+        <el-select v-model="book.level2Id" placeholder="请选择">
+          <el-option
+            v-for="item in secondCategoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <!--      版权-->
       <el-form-item label="授权开始时间">
         <el-date-picker
@@ -74,6 +94,7 @@
 
 <script>
 import book from '@/api/cms/book'
+import category from "@/api/cms/category";
 export default {
   data(){
     return {
@@ -90,12 +111,15 @@ export default {
 
       },
       saveBtnDisabeled: false,// ## 不禁用保存按钮
-      BASE_API: process.env.VUE_APP_BASE_API
+      BASE_API: process.env.VUE_APP_BASE_API,
+      firstCategoryList: [],
+      secondCategoryList: []
 
     }
   },
   created(){
     this.init()
+    this.getFirstCategoryList()
   },
   methods: {
     init(){
@@ -109,6 +133,20 @@ export default {
       .then(response =>{
         // ## 赋值
         this.book =response.data.book
+        // ## 获取分类信息
+        category.getCategoryList()
+          .then(response=>{
+            // ## 一级分类
+            this.firstCategoryList=response.data.items
+            // ## 二级分类
+            for (let i = 0; i < this.firstCategoryList.length; i++) {
+              // ## 当前页面的一级分类ID和当前firstCategoryList 中的一级分类对应
+              if(this.book.level1Id===this.firstCategoryList[i].id){
+                this.secondCategoryList=this.firstCategoryList[i].secondCategoryList
+              }
+
+            }
+          })
       })
     },
     handleAvatarSuccess(res,file){
@@ -138,6 +176,22 @@ export default {
           // ## 回到list页面,重定向功能
           this.$router.push('/cms/book/list')
         })
+    },
+    getFirstCategoryList(){// ## 获取一级分类list
+      category.getCategoryList()
+        .then(response =>{
+          this.firstCategoryList=response.data.items
+        })
+    },
+    getSecondCategoryList(value) {// ##获取二级分类list
+      // ## 清空
+      this.book.level2Id = ''
+      for (let i = 0; i < this.firstCategoryList.length; i++) {
+        if (value === this.firstCategoryList[i].id) {
+          this.secondCategoryList = this.firstCategoryList[i].secondCategoryList
+          return this.fristCategoryList[i].secondCategoryList
+        }
+      }
     }
   }
 }

@@ -13,6 +13,26 @@
         </el-col>
       </el-form-item>
       <!--      分类-->
+      <el-form-item label="一级分类">
+        <el-select @change="getSecondCategoryList" v-model="book.level1Id" placeholder="请选择">
+          <el-option
+            v-for="item in firstCategoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="二级分类">
+        <el-select v-model="book.level2Id" placeholder="请选择">
+          <el-option
+            v-for="item in secondCategoryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <!--      版权-->
       <el-form-item label="授权开始时间">
         <el-date-picker
@@ -74,6 +94,7 @@
 
 <script>
 import book from '@/api/cms/book'
+import category from "@/api/cms/category";
 
 export default {
   data(){
@@ -81,17 +102,24 @@ export default {
       book: {
         bookName: '',
         author: '',
+        level1Id: '',
+        level2Id: '',
         grantStartTime: '',
         grantEndTime: '',
         isSerialize: '',
         isCharge: '',
         isOriginal: '',
         introduction: '',
-        bookCover: ''
+        bookCover: '',
       },
       saveBtnDisabeled: false,// ##不禁用保存按钮
-      BASE_API: process.env.VUE_APP_BASE_API // ##后端服务地址
+      BASE_API: process.env.VUE_APP_BASE_API, // ##后端服务地址
+      firstCategoryList: [], // ##一级分类列表
+      secondCategoryList: [] // ##二级分类列表
     }
+  },
+  created(){
+    this.getFirstCategoryList()
   },
   methods:{
     saveBook(){
@@ -123,7 +151,25 @@ export default {
         this.$message.error('上传图片大小不能超过2M')
       }
       return isJPG && isLt2M
+    },
+    getFirstCategoryList(){// ## 获取一级分类list
+      category.getCategoryList()
+        .then(response =>{
+          this.firstCategoryList=response.data.items
+        })
+
+    },
+    getSecondCategoryList(value){// ##获取二级分类list
+      // ## 清空
+      this.book.level2Id=''
+      for (let i = 0; i < this.firstCategoryList.length; i++) {
+        console.log(value)
+        if(value === this.firstCategoryList[i].id){
+          this.secondCategoryList= this.firstCategoryList[i].secondCategoryList
+        }
+      }
     }
+    // ##
   }
 }
 </script>
